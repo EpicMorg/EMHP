@@ -3,3 +3,7 @@ D:\files\kasth_000\Github\EMHP\AeroApi\bin\Debug\AeroApi.pdb
 D:\files\kasth_000\Github\EMHP\AeroApi\obj\Debug\AeroApi.csprojResolveAssemblyReference.cache
 D:\files\kasth_000\Github\EMHP\AeroApi\obj\Debug\AeroApi.dll
 D:\files\kasth_000\Github\EMHP\AeroApi\obj\Debug\AeroApi.pdb
+D:\files\kasth_000\Github\EMHP\Source\AeroApi\bin\Debug\AeroApi.dll
+D:\files\kasth_000\Github\EMHP\Source\AeroApi\bin\Debug\AeroApi.pdb
+D:\files\kasth_000\Github\EMHP\Source\AeroApi\obj\Debug\AeroApi.dll
+D:\files\kasth_000\Github\EMHP\Source\AeroApi\obj\Debug\AeroApi.pdb

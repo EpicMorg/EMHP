@@ -18,14 +18,20 @@ namespace EMHP4 {
         }
 
         private void Backup() {
-            try { File.Copy( this.HostsPath, this.HostsPath + ".backup" ); }
+            try {
+                File.Delete( this.HostsPath + ".backup" );
+                File.Copy( this.HostsPath, this.HostsPath + ".backup" );
+            }
             catch ( UnauthorizedAccessException ) {
                 ErrorBox( "Невозможно получить доступ к файлу. Перезапустите программу с правами администратора" );
             }
             catch ( Exception ex ) { ErrorBox( "Не удалось сделать резервную копию:\r\n" + ex.Message ); }
         }
         private void Restore() {
-            try { File.Copy( this.HostsPath + ".backup", this.HostsPath ); }
+            try {
+                File.Delete( this.HostsPath );
+                File.Copy( this.HostsPath + ".backup", this.HostsPath );
+            }
             catch ( UnauthorizedAccessException ) {
                 ErrorBox( "Невозможно получить доступ к файлу. Перезапустите программу с правами администратора" );
             }
@@ -33,21 +39,20 @@ namespace EMHP4 {
         }
         private void Save() {
             var txt = new StringBuilder();
-            for ( var i = 0; i < ( dgv_db.Rows.Count - 1 ); i++ ) {
-                var wt = dgv_db.Rows[ i ];
+            foreach (DataGridViewRow wt in dgv_db.Rows) {
                 var ip = wt.Cells[ 1 ].Value as string;
                 var host = wt.Cells[ 2 ].Value as string;
-                if ( String.IsNullOrWhiteSpace( ip ) && String.IsNullOrWhiteSpace( host ) )
+                if ( !String.IsNullOrWhiteSpace( ip ) && !String.IsNullOrWhiteSpace( host ) )
                     txt.AppendFormat( "{0}\t{1}\r\n", ip, host );
             }
             try {
-                File.WriteAllText(this.HostsPath, txt.ToString());
+                File.WriteAllText( this.HostsPath, txt.ToString() );
             }
-            catch (UnauthorizedAccessException) {
-                ErrorBox("Невозможно получить доступ к файлу. Перезапустите программу с правами администратора");
+            catch ( UnauthorizedAccessException ) {
+                ErrorBox( "Невозможно получить доступ к файлу. Перезапустите программу с правами администратора" );
             }
-            catch ( Exception ex) {
-                ErrorBox( "Произошла ошибка при сохранении:\r\n" + ex.Message);
+            catch ( Exception ex ) {
+                ErrorBox( "Произошла ошибка при сохранении:\r\n" + ex.Message );
             }
 
             FlushDNS();
@@ -109,7 +114,7 @@ namespace EMHP4 {
             catch ( Exception ex ) { ErrorBox( ex.Message ); }
         }
         private static void ErrorBox( string message ) {
-            MessageBox.Show(  message, @"Ошибка",MessageBoxButtons.OK, MessageBoxIcon.Error );
+            MessageBox.Show( message, @"Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error );
         }
         #endregion
         #region UIHandlers
@@ -133,7 +138,7 @@ namespace EMHP4 {
         private void dgv_db_CellValueChanged( object sender, DataGridViewCellEventArgs e ) {
             int ci = e.ColumnIndex,
                 ri = e.RowIndex;
-            if ( ci == 0 && ri>=0)
+            if ( ci == 0 && ri >= 0 )
                 dgv_db[ 1, ri ].Value = ( !(bool) dgv_db[ ci, ri ].Value ) ? "" : "127.0.0.1";
         }
     }
