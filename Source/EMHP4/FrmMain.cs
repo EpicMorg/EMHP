@@ -19,10 +19,16 @@ namespace EMHP4 {
 
         private void Backup() {
             try { File.Copy( this.HostsPath, this.HostsPath + ".backup" ); }
+            catch ( UnauthorizedAccessException ) {
+                ErrorBox( "Невозможно получить доступ к файлу. Перезапустите программу с правами администратора" );
+            }
             catch ( Exception ex ) { ErrorBox( "Не удалось сделать резервную копию:\r\n" + ex.Message ); }
         }
         private void Restore() {
             try { File.Copy( this.HostsPath + ".backup", this.HostsPath ); }
+            catch ( UnauthorizedAccessException ) {
+                ErrorBox( "Невозможно получить доступ к файлу. Перезапустите программу с правами администратора" );
+            }
             catch ( Exception ex ) { ErrorBox( "Не удалось восстановить резервную копию:\r\n" + ex.Message ); }
         }
         private void Save() {
@@ -34,11 +40,19 @@ namespace EMHP4 {
                 if ( String.IsNullOrWhiteSpace( ip ) && String.IsNullOrWhiteSpace( host ) )
                     txt.AppendFormat( "{0}\t{1}\r\n", ip, host );
             }
-            File.WriteAllText( this.HostsPath, txt.ToString() );
+            try {
+                File.WriteAllText(this.HostsPath, txt.ToString());
+            }
+            catch (UnauthorizedAccessException) {
+                ErrorBox("Невозможно получить доступ к файлу. Перезапустите программу с правами администратора");
+            }
+            catch ( Exception ex) {
+                ErrorBox( "Произошла ошибка при сохранении:\r\n" + ex.Message);
+            }
+
             FlushDNS();
         }
         private static void FlushDNS() {
-            MessageBox.Show( @"Сброс ipconfig /flushdns" );
             try {
                 new Process {
                     StartInfo = {
@@ -78,20 +92,24 @@ namespace EMHP4 {
 
         private DataGridViewRow BuildRow( string[] a ) {
             var row = this.dgv_db.RowTemplate.Clone() as DataGridViewRow;
-            if ( row != null ) row.CreateCells(this.dgv_db, a[ 0 ].StartsWith("127.0.0."), a[ 0 ], a[ 1 ]);
+            if ( row != null ) row.CreateCells( this.dgv_db, a[ 0 ].StartsWith( "127.0.0." ), a[ 0 ], a[ 1 ] );
             return row;
         }
         private void DelSelectedRows() {
+            dgv_db.SuspendLayout();
+            this.SuspendLayout();
             foreach ( var rowIndex in dgv_db.SelectedCells.OfType<DataGridViewCell>().Select( a => a.RowIndex ).Distinct().OrderByDescending( a => a ).ToArray() )
-                try { dgv_db.Rows.RemoveAt( rowIndex ); }
-                catch { }
+                dgv_db.Rows.RemoveAt( rowIndex );
+            dgv_db.ResumeLayout();
+            this.ResumeLayout();
+            Application.DoEvents();
         }
         private void UserRefillTable() {
             try { RefillTable(); }
             catch ( Exception ex ) { ErrorBox( ex.Message ); }
         }
         private static void ErrorBox( string message ) {
-            MessageBox.Show( @"Ошибка", message, MessageBoxButtons.OK, MessageBoxIcon.Error );
+            MessageBox.Show(  message, @"Ошибка",MessageBoxButtons.OK, MessageBoxIcon.Error );
         }
         #endregion
         #region UIHandlers
@@ -99,14 +117,9 @@ namespace EMHP4 {
             var ai = new AssemblyInfo();
             this.Text = String.Format( "{0}", ai.AssemblyTitle ) + String.Format( " {0}", ai.AssemblyVersion );
             txt_path_hosts.Text = this.HostsPath;
-            RefillTable();
+            UserRefillTable();
         }
         private void btn_hosts_folder_browse_Click( object sender, EventArgs e ) { Process.Start( Path.GetDirectoryName( this.HostsPath ) ); }
-
-        private void dgv_db_CellValueChanged( object sender, DataGridViewCellEventArgs e ) {
-            if ( e.ColumnIndex == 0 )
-                dgv_db.Rows[ e.RowIndex ].Cells[ 1 ].Value = "127.0.0.1";
-        }
         private void UIAddRow( object sender, EventArgs e ) { dgv_db.Rows.Add(); }
         private void UIDelRow( object sender, EventArgs e ) { DelSelectedRows(); }
         private void UIBackup( object sender, EventArgs e ) { Backup(); }
@@ -115,6 +128,13 @@ namespace EMHP4 {
         private void UIExit( object sender, EventArgs e ) { Application.Exit(); }
         private void UIAbout( object sender, EventArgs e ) { new FrmAbout().Show(); }
         private void UISettings( object sender, EventArgs e ) { new FrmSettings().Show(); }
+        private void dgv_db_CellContentClick( object sender, DataGridViewCellEventArgs e ) { dgv_db.CommitEdit( DataGridViewDataErrorContexts.Commit ); }
         #endregion
+        private void dgv_db_CellValueChanged( object sender, DataGridViewCellEventArgs e ) {
+            int ci = e.ColumnIndex,
+                ri = e.RowIndex;
+            if ( ci == 0 && ri>=0)
+                dgv_db[ 1, ri ].Value = ( !(bool) dgv_db[ ci, ri ].Value ) ? "" : "127.0.0.1";
+        }
     }
 }

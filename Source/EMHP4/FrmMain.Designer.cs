@@ -164,6 +164,7 @@
             this.dgv_db.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dgv_db.Size = new System.Drawing.Size(546, 310);
             this.dgv_db.TabIndex = 6;
+            this.dgv_db.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_db_CellContentClick);
             this.dgv_db.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_db_CellValueChanged);
             // 
             // cl_banned
